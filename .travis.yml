@@ -12,5 +12,9 @@ install:
 script:
   - vendor/bin/psalm
   - vendor/bin/phpstan analyse
-  - vendor/bin/phpunit --coverage-text
+  - vendor/bin/phpunit --coverage-text --coverage-clover coverage.xml
   - vendor/bin/infection
+
+after_script:
+  - wget https://scrutinizer-ci.com/ocular.phar
+  - php ocular.phar code-coverage:upload --format=php-clover coverage.xml
