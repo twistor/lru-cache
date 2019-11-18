@@ -26,6 +26,8 @@ class LruCacheTest extends TestCase
 
     public function testConstructorValidation(): void
     {
+        $this->assertInstanceOf(LruCache::class, new LruCache(1));
+
         $this->expectException(InvalidArgumentException::class);
 
         new LruCache(0);
