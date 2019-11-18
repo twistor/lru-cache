@@ -64,7 +64,7 @@ final class LruCache
     public function get($key)
     {
         if ($this->has($key)) {
-            return $this->setExisting($key, $this->cache[$key]);
+            return $this->putExisting($key, $this->cache[$key]);
         }
 
         return null;
@@ -84,10 +84,10 @@ final class LruCache
     public function getWith($key, callable $callback)
     {
         if ($this->has($key)) {
-            return $this->setExisting($key, $this->cache[$key]);
+            return $this->putExisting($key, $this->cache[$key]);
         }
 
-        return $this->setNew($key, $callback($key));
+        return $this->putNew($key, $callback($key));
     }
 
     /**
@@ -99,12 +99,12 @@ final class LruCache
      * @psalm-param TKey $key
      * @psalm-param TValue $value
      */
-    public function set($key, $value): void
+    public function put($key, $value): void
     {
         if ($this->has($key)) {
-            $this->setExisting($key, $value);
+            $this->putExisting($key, $value);
         } else {
-            $this->setNew($key, $value);
+            $this->putNew($key, $value);
         }
     }
 
@@ -117,7 +117,7 @@ final class LruCache
      * @psalm-param TValue $value
      * @psalm-return TValue
      */
-    private function setExisting($key, $value)
+    private function putExisting($key, $value)
     {
         unset($this->cache[$key]);
 
@@ -133,7 +133,7 @@ final class LruCache
      * @psalm-param TValue $value
      * @psalm-return TValue
      */
-    private function setNew($key, $value)
+    private function putNew($key, $value)
     {
         // We're at capacity; delete the least recently used cache entry.
         if ($this->size === $this->capacity) {
