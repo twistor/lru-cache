@@ -5,7 +5,6 @@ namespace Twistor;
 use InvalidArgumentException;
 use function array_key_exists;
 use function key;
-use function reset;
 
 /**
  * @template TKey as array-key
@@ -88,8 +87,6 @@ final class LruCache
         }
 
         // We're at capacity; delete the least recently used cache entry.
-        // This reset() call shouldn't be necessary, but it won't hurt.
-        reset($this->cache);
         unset($this->cache[key($this->cache)]);
         $this->cache[$key] = $value;
     }

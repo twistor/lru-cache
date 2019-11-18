@@ -8,6 +8,19 @@ use Twistor\LruCache;
 
 class LruCacheTest extends TestCase
 {
+    /**
+     * @var \Twistor\LruCache<int, string>
+     */
+    private $cache;
+
+    public function setUp(): void
+    {
+        $this->cache = new LruCache(2);
+
+        $this->cache->set(1, 'first');
+        $this->cache->set(2, 'second');
+    }
+
     public function testConstructorValidation(): void
     {
         $this->expectException(InvalidArgumentException::class);
@@ -15,65 +28,55 @@ class LruCacheTest extends TestCase
         new LruCache(0);
     }
 
+    public function testHas(): void
+    {
+        $this->assertTrue($this->cache->has(1));
+        $this->assertTrue($this->cache->has(2));
+        $this->assertFalse($this->cache->has(3));
+    }
+
+    public function testGet(): void
+    {
+        $this->assertSame('first', $this->cache->get(1));
+        $this->assertSame('second', $this->cache->get(2));
+        $this->assertNull($this->cache->get(3));
+    }
+
     public function testOldKeysRemoved(): void
     {
-        /** @var \Twistor\LruCache<int, string> $cache */
-        $cache = new LruCache(2);
+        $this->cache->set(3, 'third');
 
-        $cache->set(1, 'first');
-        $cache->set(2, 'second');
+        $this->assertFalse($this->cache->has(1));
+        $this->assertTrue($this->cache->has(2));
+        $this->assertTrue($this->cache->has(3));
 
-        $this->assertTrue($cache->has(1));
-        $this->assertTrue($cache->has(2));
-        $this->assertFalse($cache->has(3));
-
-        $this->assertSame('first', $cache->get(1));
-        $this->assertSame('second', $cache->get(2));
-        $this->assertNull($cache->get(3));
-
-        $cache->set(3, 'third');
-
-        $this->assertFalse($cache->has(1));
-        $this->assertTrue($cache->has(2));
-        $this->assertTrue($cache->has(3));
-
-        $this->assertNull($cache->get(1));
-        $this->assertSame('second', $cache->get(2));
-        $this->assertSame('third', $cache->get(3));
+        $this->assertNull($this->cache->get(1));
+        $this->assertSame('second', $this->cache->get(2));
+        $this->assertSame('third', $this->cache->get(3));
     }
 
     public function testGettingExistingTouchesKey(): void
     {
-        /** @var \Twistor\LruCache<int, string> $cache */
-        $cache = new LruCache(2);
+        // This makes 1 a more recently used key.
+        $this->assertSame('first', $this->cache->get(1));
 
-        $cache->set(1, 'first');
-        $cache->set(2, 'second');
+        $this->cache->set(3, 'third');
 
-        $this->assertSame('first', $cache->get(1));
-
-        $cache->set(3, 'third');
-
-        $this->assertSame('first', $cache->get(1));
-        $this->assertNull($cache->get(2));
-        $this->assertSame('third', $cache->get(3));
+        $this->assertSame('first', $this->cache->get(1));
+        $this->assertNull($this->cache->get(2));
+        $this->assertSame('third', $this->cache->get(3));
     }
 
     public function testSettingExistingTouchesKey(): void
     {
-        /** @var \Twistor\LruCache<int, string> $cache */
-        $cache = new LruCache(2);
-
-        $cache->set(1, 'first');
-        $cache->set(2, 'second');
-
-        $cache->set(1, 'first updated');
+        // This makes 1 a more recently used key.
+        $this->cache->set(1, 'first updated');
 
         // When we set third, second should be removed.
-        $cache->set(3, 'third');
+        $this->cache->set(3, 'third');
 
-        $this->assertSame('first updated', $cache->get(1));
-        $this->assertNull($cache->get(2));
-        $this->assertSame('third', $cache->get(3));
+        $this->assertSame('first updated', $this->cache->get(1));
+        $this->assertNull($this->cache->get(2));
+        $this->assertSame('third', $this->cache->get(3));
     }
 }
