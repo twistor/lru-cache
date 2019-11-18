@@ -39,6 +39,8 @@ final class LruCache
     }
 
     /**
+     * Checks if a key exists in the cache.
+     *
      * @param string|int $key
      * @return bool
      *
@@ -51,6 +53,8 @@ final class LruCache
     }
 
     /**
+     * Returns a cache entry if it exists.
+     *
      * @param string|int $key
      * @return mixed|null
      *
@@ -59,39 +63,16 @@ final class LruCache
      */
     public function get($key)
     {
-        if ( ! $this->has($key)) {
-            return null;
-        }
-
-        return $this->touch($key, $this->cache[$key]);
-    }
-
-    /**
-     * @param string|int $key
-     * @param mixed $value
-     *
-     * @psalm-param TKey $key
-     * @psalm-param TValue $value
-     */
-    public function set($key, $value): void
-    {
         if ($this->has($key)) {
-            $this->touch($key, $value);
-            return;
+            return $this->setExisting($key, $this->cache[$key]);
         }
 
-        if ($this->size < $this->capacity) {
-            ++$this->size;
-            $this->cache[$key] = $value;
-            return;
-        }
-
-        // We're at capacity; delete the least recently used cache entry.
-        unset($this->cache[key($this->cache)]);
-        $this->cache[$key] = $value;
+        return null;
     }
 
     /**
+     * Returns an existing cache entry or calls the callback to retrieve it.
+     *
      * @param string|int $key
      * @param callable $callback
      * @return mixed
@@ -103,14 +84,28 @@ final class LruCache
     public function getWith($key, callable $callback)
     {
         if ($this->has($key)) {
-            return $this->touch($key, $this->cache[$key]);
+            return $this->setExisting($key, $this->cache[$key]);
         }
 
-        $value = $callback($key);
+        return $this->setNew($key, $callback($key));
+    }
 
-        $this->set($key, $value);
-
-        return $value;
+    /**
+     * Sets a cache entry.
+     *
+     * @param string|int $key
+     * @param mixed $value
+     *
+     * @psalm-param TKey $key
+     * @psalm-param TValue $value
+     */
+    public function set($key, $value): void
+    {
+        if ($this->has($key)) {
+            $this->setExisting($key, $value);
+        } else {
+            $this->setNew($key, $value);
+        }
     }
 
     /**
@@ -122,9 +117,30 @@ final class LruCache
      * @psalm-param TValue $value
      * @psalm-return TValue
      */
-    private function touch($key, $value)
+    private function setExisting($key, $value)
     {
         unset($this->cache[$key]);
+
+        return $this->cache[$key] = $value;
+    }
+
+    /**
+     * @param string|int $key
+     * @param mixed $value
+     * @return mixed
+     *
+     * @psalm-param TKey $key
+     * @psalm-param TValue $value
+     * @psalm-return TValue
+     */
+    private function setNew($key, $value)
+    {
+        // We're at capacity; delete the least recently used cache entry.
+        if ($this->size === $this->capacity) {
+            unset($this->cache[key($this->cache)]);
+        } else {
+            ++$this->size;
+        }
 
         return $this->cache[$key] = $value;
     }

@@ -9,7 +9,9 @@ use Twistor\LruCache;
 class LruCacheTest extends TestCase
 {
     /**
-     * @var \Twistor\LruCache<int, string>
+     * @var \Twistor\LruCache
+     *
+     * @psalm-var \Twistor\LruCache<int, string>
      */
     private $cache;
 
