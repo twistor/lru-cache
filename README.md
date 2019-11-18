@@ -6,7 +6,8 @@
 [![Packagist Version](https://img.shields.io/packagist/v/twistor/lru-cache.svg?style=flat-square)](https://packagist.org/packages/twistor/lru-cache)
 [![Total Downloads](https://img.shields.io/packagist/dt/twistor/lru-cache.svg?style=flat-square)](https://packagist.org/packages/twistor/lru-cache)
 
-This adapter keeps the filesystem in memory. It's useful when you need a filesystem, but do not need it persisted.
+An LRU (least recently used) cache allows you to keep an in memory cache of objects.
+The oldest cache items will be removed once the capacity limit is reached.
 
 ## Installation
 
@@ -17,5 +18,15 @@ composer require twistor/lru-cache
 ## Usage
 
 ```php
+use Twistor\LruCache;
 
+$cache = new LruCache(100);
+
+$cache->put('my_key', 1);
+
+$cache->get('my_key');
+
+$cache->getWith('new_key', function ($key) {
+   return 2;
+});
 ```
