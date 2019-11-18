@@ -97,16 +97,20 @@ final class LruCache
      * @return mixed
      *
      * @psalm-param TKey $key
-     * @psalm-param callable(): TValue $callback
+     * @psalm-param callable(TKey): TValue $callback
      * @psalm-return TValue
      */
     public function getWith($key, callable $callback)
     {
-        if ( ! $this->has($key)) {
-            $this->set($key, $callback());
+        if ($this->has($key)) {
+            return $this->touch($key, $this->cache[$key]);
         }
 
-        return $this->touch($key, $this->cache[$key]);
+        $value = $callback($key);
+
+        $this->set($key, $value);
+
+        return $value;
     }
 
     /**

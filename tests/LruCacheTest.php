@@ -15,6 +15,7 @@ class LruCacheTest extends TestCase
 
     public function setUp(): void
     {
+        /** @var \Twistor\LruCache<int, string> cache */
         $this->cache = new LruCache(2);
 
         $this->cache->set(1, 'first');
@@ -78,5 +79,23 @@ class LruCacheTest extends TestCase
         $this->assertSame('first updated', $this->cache->get(1));
         $this->assertNull($this->cache->get(2));
         $this->assertSame('third', $this->cache->get(3));
+    }
+
+    public function testGetWith(): void
+    {
+        $throws = function(int $key): string {
+            throw new InvalidArgumentException();
+        };
+
+        $this->assertSame('first', $this->cache->getWith(1, $throws));
+        $this->assertSame('second', $this->cache->getWith(2, $throws));
+
+        $returnsThree = function(int $key): string {
+            return 'third';
+        };
+
+        $this->assertSame('third', $this->cache->getWith(3, $returnsThree));
+        $this->assertTrue($this->cache->has(3));
+        $this->assertSame('third', $this->cache->getWith(3, $throws));
     }
 }
